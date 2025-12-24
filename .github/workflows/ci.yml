@@ -1,0 +1,44 @@
+name: CI - MLflow Project (Basic)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          python-version: "3.11"
+
+      - name: Check env
+        shell: bash -l {0}
+        run: |
+          python --version
+          conda --version
+
+      - name: Install MLflow (runner base)
+        shell: bash -l {0}
+        run: |
+          pip install mlflow==3.8.0
+
+      - name: Run MLflow Project (re-train)
+        shell: bash -l {0}
+        env:
+          MLFLOW_TRACKING_URI: file:${{ github.workspace }}/mlruns
+        run: |
+          mlflow run ./MLProject -e main --experiment-name MSML-CI-Basic-Stroke
+
+      - name: Show mlruns result (debug)
+        shell: bash -l {0}
+        run: |
+          ls -la
+          ls -la mlruns || true
